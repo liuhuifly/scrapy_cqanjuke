@@ -1,7 +1,5 @@
 import scrapy
 import re
-# from scrapy.linkextractors import LinkExtractor
-# from scrapy.spiders import Rule
 from hourse.items import AnjukeCQItem
 
 

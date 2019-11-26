@@ -9,9 +9,19 @@ import scrapy
 
 
 class HourseItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    area_code = scrapy.Field()
+    house_title = scrapy.Field()
+    house_cost = scrapy.Field()
+    house_code = scrapy.Field()
+    house_community = scrapy.Field()
+    house_location = scrapy.Field()
+    house_build_years = scrapy.Field()
+    house_kind = scrapy.Field()
+    house_layout = scrapy.Field()
+    house_size = scrapy.Field()
+    house_face_to = scrapy.Field()
+    house_price = scrapy.Field()
+    house_url = scrapy.Field()
 
 class AnjukeItem(scrapy.Item):
     id = scrapy.Field()
@@ -31,6 +41,12 @@ class AnjukeItem(scrapy.Item):
     address = scrapy.Field()
     create_time = scrapy.Field()
     update_time = scrapy.Field()
+
+class AnjukeCQArea(scrapy.Item):
+    code = scrapy.Field()
+    name = scrapy.Field()
+    parent_code = scrapy.Field()
+    display_order = scrapy.Field()
 
 class AnjukeCQItem(scrapy.Item):
     house_title = scrapy.Field()

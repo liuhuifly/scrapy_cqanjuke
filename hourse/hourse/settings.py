@@ -70,7 +70,9 @@ ROBOTSTXT_OBEY = False
 #    'hourse.pipelines.HoursePipeline': 300,
 #}
 ITEM_PIPELINES = {
-   'hourse.pipelines.AnjukePipeline': 300,
+   'hourse.pipelines.HoursePipeline': 300,
+   # 'hourse.pipelines.AnjukePipeline': 300,
+   # 'hourse.pipelines.AreaPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
