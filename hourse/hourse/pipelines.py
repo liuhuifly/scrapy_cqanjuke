@@ -8,84 +8,51 @@ import pymysql
 
 class HoursePipeline(object):
     def __init__(self):
-        self.db = pymysql.connect("localhost", "root", "123456", "pymysqldb", charset="utf8")
+        self.db = pymysql.connect("localhost", "root", "123456", "house", charset="utf8")
         self.cursor = self.db.cursor()
 
     def process_item(self, item, spider):
+        select_area_sql = "select id from house_area where code='%s'" % item['area_code']
+        is_area_exist = self.cursor.execute(select_area_sql)
+        house_area = self.cursor.fetchone()
+        area_id = 0
+        if house_area:
+            area_id = house_area[0]
 
-        select_sql = "select * from house where house_code='%s'" % item['house_code']
+        select_sql = "select id from house where code='%s'" % item['code']
         already_save = self.cursor.execute(select_sql)
+        house_item = self.cursor.fetchone()
         self.db.commit()
 
         if already_save == 1:
-            # 更新
-            pass
-        else:
-            # 插入
-            sql = "insert into house(area_code,house_title,house_cost,house_code,house_community,house_location,house_build_years,house_kind,house_layout,house_size,\
-                house_face_to,house_price,house_url)\
-                values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"\
-                %(item['area_code'],item['house_title'],item['house_cost'],item['house_code'],item['house_community'],item['house_location'],\
-                    item['house_build_years'],item['house_kind'], item['house_layout'],item['house_size'],item['house_face_to'],item['house_price'],\
-                    item['house_url'])
-            self.cursor.execute(sql)
+            # 更新信息
+            house_id = house_item[0]
+            update_sql = "update house set title='%s', unit_price='%d', total_price='%d', url='%s' where id='%d'" % (item['title'],int(item['unit_price']),int(item['total_price']),item['url'],int(house_id))
+            self.cursor.execute(update_sql)
             self.db.commit()
+
+            # 插入价格
+            self.add_price(house_id, item['code'], item['unit_price'], item['total_price'])  
+        else:
+            # 插入信息
+            sql = "insert into house(area_id,area_code,title,unit_price,total_price,code,community,location,build_years,floor,layout,size,picture_url,url)\
+                values('%d','%s','%s','%d','%d','%s','%s','%s','%s','%s','%s','%s','%s','%s')"\
+                %(area_id,item['area_code'],item['title'],int(item['unit_price']),int(item['total_price']),item['code'],item['community'],item['location'],\
+                    item['build_years'],item['floor'], item['layout'],item['size'],item['picture_url'],item['url'])
+            self.cursor.execute(sql)
+
+            house_id = int(self.db.insert_id())
+            self.db.commit()
+
+            # 插入价格
+            self.add_price(house_id, item['code'], item['unit_price'], item['total_price'])  
         return item
 
-    def __del__(self):
-        self.db.close()
-
-class AnjukePipeline(object):
-    def __init__(self):
-        self.db = pymysql.connect("localhost", "root", "123456", "pymysqldb", charset="utf8")
-        self.cursor = self.db.cursor()
-
-    def process_item(self, item, spider):
-
-        select_sql = "select * from cq_house_info where house_code='%s'" % item['house_code']
-        already_save = self.cursor.execute(select_sql)
-        self.db.commit()
-
-        if already_save == 1:
-            # 更新
-            pass
-        else:
-            # 插入
-            sql = "insert into cq_house_info(house_title,house_cost,house_code,house_public_time,house_community,house_location,house_build_years,house_kind,house_layout,house_size,\
-                house_face_to,house_point,house_price,house_first_pay,house_month_pay,house_decorate_type,house_agent,house_agency,house_url)\
-                values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"\
-                %(item['house_title'],item['house_cost'],item['house_code'],item['house_public_time'],item['house_community'],item['house_location'],\
-                    item['house_build_years'],item['house_kind'], item['house_layout'],item['house_size'],item['house_face_to'],item['house_point'],item['house_price'],\
-                    item['house_first_pay'],item['house_month_pay'],item['house_decorate_type'],item['house_agent'],item['house_agency'],item['house_url'])
-            self.cursor.execute(sql)
-            self.db.commit()
-        return item
-
-    def __del__(self):
-        self.db.close()
-
-class AreaPipeline(object):
-    def __init__(self):
-        self.db = pymysql.connect("localhost", "root", "123456", "pymysqldb", charset="utf8")
-        self.cursor = self.db.cursor()
-
-    def process_item(self, item, spider):
-
-        select_sql = "select * from cq_area_info where code='%s'" % item['code']
-        already_save = self.cursor.execute(select_sql)
-        self.db.commit()
-
-        if already_save == 1:
-            # 更新
-            pass
-        else:
-            # 插入
-            sql = "insert into cq_area_info(code,name,parent_code,display_order)\
-                values('%s','%s','%s','%d')"\
-                %(item['code'],item['name'],item['parent_code'],item['display_order'])
-            self.cursor.execute(sql)
-            self.db.commit()
-        return item
+    def add_price(self, house_id, house_code, unit_price, total_price):
+        sql = "insert into house_price(house_id, house_code, unit_price, total_price)\
+            values('%d','%s','%d','%d')" % (int(house_id), house_code, int(unit_price), int(total_price))
+        self.cursor.execute(sql)
+        self.db.commit() 
 
     def __del__(self):
         self.db.close()
